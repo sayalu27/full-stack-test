@@ -1,0 +1,80 @@
+<?php
+// db.php - Database connection
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "wpoets_crud";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+?>
+
+<!-- index.php - Main Page -->
+<?php
+include 'db.php';
+$result = $conn->query("SELECT * FROM sliders");
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WPoets CRUD</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<div class="container mt-5">
+    <div class="row">
+        <!-- Column 1: Tabs -->
+        <div class="col-md-3">
+            <ul class="nav flex-column" id="tabs-list">
+                <?php while ($row = $result->fetch_assoc()): ?>
+                    <li class="nav-item">
+                        <a class="nav-link" data-slider="<?= $row['id'] ?>"><?= $row['title'] ?></a>
+                    </li>
+                <?php endwhile; ?>
+            </ul>
+        </div>
+        
+        <!-- Column 2: Slider -->
+        <div class="col-md-6">
+            <div id="slider-container"></div>
+        </div>
+        
+        <!-- Column 3: Image Display -->
+        <div class="col-md-3">
+            <div id="image-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function(){
+        $('.nav-link').click(function(){
+            let sliderId = $(this).data('slider');
+            $('#slider-container').html('<div>Loading...</div>');
+            $.ajax({
+                url: 'fetch_slider.php',
+                method: 'POST',
+                data: { id: sliderId },
+                success: function(response) {
+                    $('#slider-container').html(response);
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
+
+<!-- fetch_slider.php - Fetch slider content dynamically -->
+<?php
+include 'db.php';
+$id = $_POST['id'];
+$result = $conn->query("SELECT * FROM slides WHERE slider_id=$id");
+while ($row = $result->fetch_assoc()) {
+    echo "<div class='slide' data-img='" . $row['image'] . "'>" . $row['content'] . "</div>";
+}
+?>
